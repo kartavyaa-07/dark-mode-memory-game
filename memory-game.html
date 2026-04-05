@@ -13,6 +13,20 @@
             --card-front: #ffffff;
             --text-color: #333333;
             --success-color: #4caf50;
+            --surface-color: #ffffff; /* surfaces: controls, cards, modals */
+            --muted-text: #666666;
+        }
+
+        /* Dark theme override when `data-theme="dark"` is set on <html> */
+        html[data-theme="dark"] {
+            --primary-color: #64b5f6;
+            --background-color: #0b1220;
+            --card-back: #233545;
+            --card-front: #0f1724;
+            --text-color: #e5e7eb;
+            --surface-color: #111827;
+            --muted-text: #9ca3af;
+            --success-color: #4caf50;
         }
 
         * {
@@ -54,7 +68,7 @@
             justify-content: space-around;
             flex-wrap: wrap;
             gap: 1rem;
-            background: white;
+            background: var(--surface-color);
             padding: 1rem;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -93,6 +107,26 @@
 
         button.active {
             background-color: #0d47a1;
+        }
+
+        /* Theme toggle specific styles */
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+        }
+
+        .theme-toggle button {
+            background: transparent;
+            color: var(--text-color);
+            border: 1px solid rgba(0,0,0,0.08);
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+
+        .theme-toggle button:hover {
+            background: rgba(255,255,255,0.04);
         }
 
         /* Game grid styles with responsive layout */
@@ -173,7 +207,8 @@
         }
 
         .modal-content {
-            background: white;
+            background: var(--surface-color);
+            color: var(--text-color);
             padding: 2rem;
             border-radius: 8px;
             text-align: center;
@@ -190,7 +225,7 @@
         .scores-list {
             max-width: 600px;
             margin: 1rem auto;
-            background: white;
+            background: var(--surface-color);
             padding: 1rem;
             border-radius: 8px;
         }
@@ -233,6 +268,9 @@
             <div class="stat">
                 <h2>Rating</h2>
                 <p class="stat-value rating" aria-live="polite">★★★</p>
+            </div>
+            <div class="theme-toggle">
+                <button id="theme-toggle" aria-pressed="false" title="Toggle dark mode">🌙 Dark</button>
             </div>
         </div>
 
@@ -286,7 +324,8 @@
             modal: document.querySelector('.modal'),
             finalStats: document.querySelector('.final-stats'),
             gridButtons: document.querySelectorAll('.grid-btn'),
-            scoresList: document.querySelector('.scores-list')
+            scoresList: document.querySelector('.scores-list'),
+            themeToggle: document.getElementById('theme-toggle')
         };
 
         // Card symbols (emojis) for both grid sizes
@@ -497,6 +536,28 @@
                 }
             });
         });
+
+        // Theme handling: apply and persist theme preference
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('memoryGameTheme', theme);
+            if (elements.themeToggle) {
+                elements.themeToggle.textContent = theme === 'dark' ? '☀️ Light' : '🌙 Dark';
+                elements.themeToggle.setAttribute('aria-pressed', theme === 'dark');
+            }
+        }
+
+        (function initTheme() {
+            const saved = localStorage.getItem('memoryGameTheme');
+            const initial = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            applyTheme(initial);
+            if (elements.themeToggle) {
+                elements.themeToggle.addEventListener('click', () => {
+                    const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+                    applyTheme(current === 'dark' ? 'light' : 'dark');
+                });
+            }
+        })();
 
         // Initialize game
         updateScoresList();
